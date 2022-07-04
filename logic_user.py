@@ -136,7 +136,7 @@ if __name__ == '__main__':
     
     test = User('name', 'phone')
     print(test.show_all_data())
- 
+    print(base.df)
         
   
               

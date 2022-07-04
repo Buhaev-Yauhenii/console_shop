@@ -52,8 +52,8 @@ def add_items(cls, id):
  
 
 @attrib_not_found
-def del_item( id):
-    return df.drop(cls.df[cls.df["name"] == id].index, inplace= True)
+def del_item(id):
+    return df.drop(df[df["name"] == id].index, inplace= True)
 
 
  
