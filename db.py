@@ -2,93 +2,114 @@ import pandas as pd
 import sys
 from datetime import date
 
+
+
+
 class Base():
+    try:
+        df = pd.read_csv('data.csv')
+    except FileNotFoundError as e:
+        print('data not found')
+        with open('error.txt', 'a') as errors:
+            errors.write(f'{date.today()} - {e}')
+        sys.exit()
+    
     def __init__(self, name, phone):
-        try:
-            self.df = pd.read_csv('data.csv')
-            self.phone = phone
-            self.name = name
-            self.cart = []
-            self.order = []
-        except FileNotFoundError as e:
-            print('data not found')
-            with open('error.txt', 'a') as errors:
-                errors.write(f'{date.today()} - {e}')
-            sys.exit()
+        self.phone = phone
+        self.name = name
+        self.cart = []
+        self.order = []
+        
+    
+    # @classmethod        
+    # def attrib_not_found(cls,func):
+    #     def wrapper(*args):
+    #         try:
+    #             return func(*args)
+    #         except (AttributeError, TypeError) as e:
+    #             print(e)
+    #             print('data not found (please recheck init data or send a message to administrator)')
+    #             # with open('error.txt', 'a') as errors:
+    #             #     errors.write(f'{date.today()} - {e}')
+    #             # sys.exit()
+    #         except KeyError as e:
+    #             print(e)
+    #             # with open('error.txt', 'a') as errors:
+    #             #     errors.write(f'{date.today()} - {e}')
+    #             # sys.exit()
+    #             print('do not have a column (please recheck all key values or send a message to administrator)')
+    #     return wrapper
+    
+        
 
 
 
-    def attrib_not_found(func):
-        def wrapper(*args):
-            try:
-                return func(*args)
-            except (AttributeError, TypeError) as e:
-                print('data not found (please recheck init data or send a message to administrator)')
-                with open('error.txt', 'a') as errors:
-                    errors.write(f'{date.today()} - {e}')
-                sys.exit()
-            except KeyError as e:
-                with open('error.txt', 'a') as errors:
-                    errors.write(f'{date.today()} - {e}')
-                sys.exit()
-                print('do not have a column (please recheck all key values or send a message to administrator)')
-        return wrapper
+    @classmethod
+    def range_of_price(cls, start, end, category, *args):
+        return cls.df[(cls.df.price.between(start,end)) & (cls.df[category].isin(args))][['id','category','name', 'price']].to_string(index = False)
 
 
-    @attrib_not_found
-    def range_of_price(self, start, end, category, *args):
-        return self.df[(self.df.price.between(start,end)) & (self.df[category].isin(args))][['id','category','name', 'price']].to_string(index = False)
+    @classmethod
+    def add_items(cls, id):
+            cls.df.at[cls.df[cls.df["id"] == int(id)].index[0],'quantity'] += 1
+            cls.df.to_csv('data.csv', index=False)
 
-    @attrib_not_found
-    def add_items(self, id):
-            self.df.at[self.df[self.df["id"] == int(id)].index[0],'quantity'] += 1
-            self.df.to_csv('data.csv', index=False)
 
-    @attrib_not_found
-    def del_item(self, id):
-       return self.df.drop(self.df[self.df["name"] == id].index, inplace= True)
+ 
+    @classmethod
+    def del_item(cls, id):
+       return cls.df.drop(cls.df[cls.df["name"] == id].index, inplace= True)
 
-    @attrib_not_found
-    def get_items(self, key, *args):
-        return self.df.loc[self.df[key].isin(args)]
 
-    @attrib_not_found
-    def search_items(self,key,*args):
-        return self.df.loc[self.df[key].isin(args)][['id','category','name','price']].to_string(index=False)
+    @classmethod
+    def get_items(cls, key, *args):
+        return cls.df.loc[cls.df[key].isin(args)]
+
+   
+    @classmethod
+    def search_items(cls,key,*args):
+        return cls.df.loc[cls.df[key].isin(args)][['id','category','name','price']].to_string(index=False)
 
     
+    @classmethod
+    def show_all_data(cls):
+        return cls.df[['id', 'category', 'name', 'price']].to_string(index=False)
+    
+    
+   
+    @classmethod
+    def is_in_df(cls, category, item):
+        return cls.df[category].isin([item]).any()
 
-    @attrib_not_found
-    def show_all_data(self):
-        return self.df[['id', 'category', 'name', 'price']].to_string(index=False)
-    @attrib_not_found
-    def is_in_df(self,category, item):
-        return self.df[category].isin([item]).any()
+  
+    @classmethod
+    def show_all_names(cls):
+        return cls.df.name.unique()
 
-    @attrib_not_found
-    def show_all_names(self):
-        return self.df.name.unique()
+   
+    @classmethod
+    def show_all_id(cls):
+        return cls.df.id.values.tolist()
 
-    @attrib_not_found
-    def show_all_id(self):
-        return self.df.id.values.tolist()
+   
+    @classmethod
+    def show_all_categories_str(cls):
+        [print(f'{i}', sep=', ') for i in Base.df['category'].unique()]
+        return len(cls.df['category'].unique())
 
-    @attrib_not_found
-    def show_all_categories_str(self):
-        [print(f'{i}', sep=', ') for i in self.df['category'].unique()]
-        return len(self.df['category'].unique())
+   
+    @classmethod
+    def return_all_categories(cls):
+        return cls.df['category'].unique().tolist()
 
-    @attrib_not_found
-    def return_all_categories(self):
-        return self.df['category'].unique().tolist()
 
-    @attrib_not_found
+
     def choose_item(self, *id):
         items = self.get_items('id', *id).values.tolist()
         [self.cart.append({'id':i[0], 'category':i[1], 'name':i[2], 'price':i[3] }) for i in items]
         
 
-    @attrib_not_found
+
     def buy_items(self):
         if self.cart:
             for i in self.cart:
@@ -102,7 +123,7 @@ class Base():
 
             self.order = self.cart
             self.cart = []
-             
+              
     def delete_from_cart(self, id):
         for en,i in enumerate(self.cart):
             if i['id'] == id:
@@ -110,10 +131,12 @@ class Base():
                 self.cart.pop(en)
                 
         
-        
+
+   
         
 if __name__ == '__main__':
     db = Base('qweqwe', '123123')
+    print(Base.show_all_data())
    
 
 

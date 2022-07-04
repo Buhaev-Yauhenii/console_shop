@@ -4,8 +4,8 @@ class User():
     def __init__(self,name, phone):
         self.db = Base(name, phone)
         
-        
-    def print_message(self, message): 
+    @staticmethod   
+    def print_message(message): 
         print(f'{message}\n----------')
         
     def hello(self):
